@@ -64,6 +64,35 @@ const TaskList = () => {
     }
   };
 
+  ///teste
+
+  // Função para filtrar as tarefas com base no filtro selecionado
+  const filteredTasksPriority = () => {
+    if (filter === 'low') {
+      return tasks.filter(task => task.priority);
+    }
+    if (filter === 'medium') {
+      return tasks.filter(task => !task.priority);
+    }
+    if (filter === 'high') {
+      return tasks.filter(task => !task.priority);
+    }
+    return tasks; // 'all' retorna todas as tarefas
+  };
+
+  // Função para atualizar o filtro com base na opção do dropdown
+  const handleFilterPriority = (region: string) => {
+    if (region === 'Todas as tarefas') {
+      setFilter('all');
+    } else if (region === 'Baixa prioridade') {
+      setFilter('low');
+    } else if (region === 'Média prioridade') {
+      setFilter('medium');
+    }
+  } else if (region === 'Alta prioridade') {
+    setFilter('high');
+  }
+  };
 
   return (
     <div>
@@ -111,3 +140,4 @@ const TaskList = () => {
 };
 
 export default TaskList;
+
