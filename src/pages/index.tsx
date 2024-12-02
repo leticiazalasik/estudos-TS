@@ -10,6 +10,7 @@ type Task = {
 
 // Tipagem para o filtro
 type Filter = 'all' | 'completed' | 'pending';
+type PriorityFilter = 'low' | 'medium' | 'high';
 
 const TaskList = () => {
   // Estado para armazenar as tarefas
@@ -20,6 +21,8 @@ const TaskList = () => {
   const [priority, setPriority] = useState<Task['priority']>('medium');
   // Estado para o filtro de tarefas (corrigido com tipo explícito)
   const [filter, setFilter] = useState<Filter>('all');
+  // Estado para o filtro de prioridade
+  const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('medium');
 
   // Função para adicionar nova tarefa
   const addTask = () => {
@@ -28,7 +31,7 @@ const TaskList = () => {
         id: Date.now(),
         title: newTask,
         completed: false,
-        priority
+        priority,
       };
       setTasks([...tasks, task]);
       setNewTask('');
@@ -37,61 +40,48 @@ const TaskList = () => {
 
   // Função para alternar o status de "completo" ou "pendente"
   const toggleTask = (id: number) => {
-    setTasks(tasks.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
   };
 
-  // Função para filtrar as tarefas com base no filtro selecionado
+  // Função para filtrar as tarefas com base no filtro de status
   const getFilteredTasks = () => {
     if (filter === 'completed') {
-      return tasks.filter(task => task.completed);
+      return tasks.filter((task) => task.completed);
     }
     if (filter === 'pending') {
-      return tasks.filter(task => !task.completed);
+      return tasks.filter((task) => !task.completed);
     }
     return tasks; // 'all' retorna todas as tarefas
   };
 
-  // Função para atualizar o filtro com base na opção do dropdown
-  const handleFilterChange = (region: string) => {
-    if (region === 'Todas as tarefas') {
-      setFilter('all');
-    } else if (region === 'Tarefas pendentes') {
-      setFilter('pending');
-    } else if (region === 'Tarefas concluídas') {
-      setFilter('completed');
+  // Função para filtrar as tarefas com base no filtro de prioridade
+  const getFilteredTasksByPriority = () => {
+    if (priorityFilter === 'low') {
+      return tasks.filter((task) => task.priority === 'low');
     }
-  };
-
-  ///teste
-
-  // Função para filtrar as tarefas com base no filtro selecionado
-  const filteredTasksPriority = () => {
-    if (filter === 'low') {
-      return tasks.filter(task => task.priority);
+    if (priorityFilter === 'medium') {
+      return tasks.filter((task) => task.priority === 'medium');
     }
-    if (filter === 'medium') {
-      return tasks.filter(task => !task.priority);
-    }
-    if (filter === 'high') {
-      return tasks.filter(task => !task.priority);
+    if (priorityFilter === 'high') {
+      return tasks.filter((task) => task.priority === 'high');
     }
     return tasks; // 'all' retorna todas as tarefas
   };
 
-  // Função para atualizar o filtro com base na opção do dropdown
-  const handleFilterPriority = (region: string) => {
-    if (region === 'Todas as tarefas') {
-      setFilter('all');
-    } else if (region === 'Baixa prioridade') {
-      setFilter('low');
-    } else if (region === 'Média prioridade') {
-      setFilter('medium');
-    }
-  } else if (region === 'Alta prioridade') {
-    setFilter('high');
-  }
+  // Função para atualizar o filtro de prioridade
+  const handleFilterPriority = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedPriority = event.target.value as PriorityFilter;
+    setPriorityFilter(selectedPriority);
+  };
+
+  // Função para atualizar o filtro de tarefas (status)
+  const handleFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedFilter = event.target.value as Filter;
+    setFilter(selectedFilter);
   };
 
   return (
@@ -101,8 +91,8 @@ const TaskList = () => {
         onChange={(e) => setNewTask(e.target.value)}
         placeholder="Nova tarefa"
       />
-      <select 
-        value={priority} 
+      <select
+        value={priority}
         onChange={(e) => setPriority(e.target.value as Task['priority'])}
       >
         <option value="low">Baixa</option>
@@ -110,34 +100,39 @@ const TaskList = () => {
         <option value="high">Alta</option>
       </select>
       <button onClick={addTask}>Adicionar</button>
-        
-        {/* Dropdown select para o filtro */}
-      <select 
-        value={filter} 
-        onChange={(e) => setFilter(e.target.value as Filter)}
-      >
+
+      {/* Dropdown select para o filtro de status */}
+      <select value={filter} onChange={handleFilterChange}>
         <option value="all">Mostrar Todas as Tarefas</option>
         <option value="completed">Mostrar Tarefas Concluídas</option>
         <option value="pending">Mostrar Tarefas Pendentes</option>
       </select>
-       
-    <ul>
-        {getFilteredTasks().map(task => (
-          <li 
-            key={task.id}
-            style={{ 
-              textDecoration: task.completed ? 'line-through' : 'none',
-              color: task.priority === 'high' ? 'red' : 'inherit'
-            }}
-            onClick={() => toggleTask(task.id)}
-          >
-            {task.title}
-          </li>
-        ))}
+
+      {/* Dropdown select para o filtro de prioridade */}
+      <select value={priorityFilter} onChange={handleFilterPriority}>
+        <option value="low">Baixa Prioridade</option>
+        <option value="medium">Média Prioridade</option>
+        <option value="high">Alta Prioridade</option>
+      </select>
+
+      <ul>
+        {getFilteredTasks()
+          .filter((task) => getFilteredTasksByPriority().includes(task)) // Combina os filtros de status e prioridade
+          .map((task) => (
+            <li
+              key={task.id}
+              style={{
+                textDecoration: task.completed ? 'line-through' : 'none',
+                color: task.priority === 'high' ? 'red' : 'inherit',
+              }}
+              onClick={() => toggleTask(task.id)}
+            >
+              {task.title}
+            </li>
+          ))}
       </ul>
     </div>
   );
 };
 
 export default TaskList;
-
