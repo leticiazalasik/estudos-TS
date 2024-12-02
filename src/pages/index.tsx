@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Definindo a tipagem de uma tarefa
 type Task = {
@@ -33,18 +33,24 @@ const TaskList = () => {
         completed: false,
         priority,
       };
-      setTasks([...tasks, task]);
+      const updatedTasks = [...tasks, task];
+      setTasks(updatedTasks);
       setNewTask('');
+
+      // Salvar no localStorage
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     }
   };
 
   // Função para alternar o status de "completo" ou "pendente"
   const toggleTask = (id: number) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
+    const updatedTasks = tasks.map((task) =>
+      task.id === id ? { ...task, completed: !task.completed } : task
     );
+    setTasks(updatedTasks);
+
+    // Salvar no localStorage
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
   };
 
   // Função para filtrar as tarefas com base no filtro de status
@@ -83,6 +89,14 @@ const TaskList = () => {
     const selectedFilter = event.target.value as Filter;
     setFilter(selectedFilter);
   };
+
+  // Recupera as tarefas do localStorage quando o componente é montado
+  useEffect(() => {
+    const storedTasks = localStorage.getItem('tasks');
+    if (storedTasks) {
+      setTasks(JSON.parse(storedTasks));
+    }
+  }, []);
 
   return (
     <div>
